@@ -19,7 +19,7 @@ def summarize_items(items: List[Dict]) -> List[Dict]:
             "JSON만 출력:\n"
             f"{content}"
         )
-        resp = client.responses.create(
+        resp = client.chat.completions.create(
             model=OPENAI_TEXT_MODEL,
             messages=[
                 {"role":"system", "content": SYS},
@@ -29,12 +29,19 @@ def summarize_items(items: List[Dict]) -> List[Dict]:
             response_format={"type":"json_object"},
         )
         try:
-            data = resp.output[0].content[0].text  # new Responses API structure
-        except Exception:
-            # fallback for older SDKs
             data = resp.choices[0].message.content
+        except Exception as e:
+            print(f"API 응답 처리 오류: {e}")
+            # 기본값으로 대체
+            data = '{"bullet": "뉴스 요약", "explain": "뉴스 해설", "caption": "뉴스 자막"}'
+        
         import json
-        j = json.loads(data)
+        try:
+            j = json.loads(data)
+        except json.JSONDecodeError:
+            print(f"JSON 파싱 오류: {data}")
+            j = {"bullet": "뉴스 요약", "explain": "뉴스 해설", "caption": "뉴스 자막"}
+        
         it.update({
             "bullet": j.get("bullet"),
             "explain": j.get("explain"),
