@@ -11,34 +11,26 @@ def parse_resolution(res: str) -> Tuple[int,int]:
 
 def create_news_background(W: int, H: int, duration: float):
     """일반적인 뉴스 스타일의 배경 생성"""
-    # 그라데이션 배경 생성
-    gradient = np.zeros((H, W, 3), dtype=np.uint8)
+    # 단순한 그라데이션 배경 (ColorClip 사용)
+    # 어두운 회색에서 검은색으로 그라데이션 효과를 위해 여러 레이어 사용
     
-    # 어두운 회색에서 검은색으로 그라데이션 (일반적인 뉴스 스타일)
-    for y in range(H):
-        intensity = int(20 + (y / H) * 15)  # 20-35 범위
-        gradient[y, :] = [intensity, intensity, intensity]
-    
-    # 뉴스 스타일 요소 추가 (오버레이)
-    overlay = np.zeros((H, W, 3), dtype=np.uint8)
+    # 기본 배경 (어두운 회색)
+    bg_base = ColorClip(size=(W, H), color=(30, 30, 30)).set_duration(duration)
     
     # 상단 바 (뉴스 채널 스타일)
-    bar_height = int(H * 0.06)
-    overlay[:bar_height, :] = [40, 40, 40]
+    top_bar = ColorClip(size=(W, int(H * 0.06)), color=(50, 50, 50)).set_duration(duration)
+    top_bar = top_bar.set_position((0, 0))
     
-    # 좌측 세로 바 (더 얇게)
-    bar_width = int(W * 0.01)
-    overlay[:, :bar_width] = [60, 60, 60]
+    # 좌측 세로 바
+    left_bar = ColorClip(size=(int(W * 0.01), H), color=(70, 70, 70)).set_duration(duration)
+    left_bar = left_bar.set_position((0, 0))
     
     # 하단 바 (자막 영역)
-    bottom_bar_height = int(H * 0.15)
-    overlay[H-bottom_bar_height:, :] = [15, 15, 15]
+    bottom_bar = ColorClip(size=(W, int(H * 0.15)), color=(20, 20, 20)).set_duration(duration)
+    bottom_bar = bottom_bar.set_position((0, H - int(H * 0.15)))
     
-    # 배경 합성
-    background = np.clip(gradient + overlay * 0.4, 0, 255).astype(np.uint8)
-    
-    # ColorClip으로 변환
-    return ColorClip(size=(W, H), color=background[0, 0].tolist()).set_duration(duration)
+    # 모든 레이어 합성
+    return CompositeVideoClip([bg_base, top_bar, left_bar, bottom_bar])
 
 def build_srt(segments: List[dict], srt_path: str):
     subs = []
