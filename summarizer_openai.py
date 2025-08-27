@@ -19,7 +19,7 @@ def summarize_items(items: List[Dict]) -> List[Dict]:
             "JSON만 출력:\n"
             f"{content}"
         )
-        resp = client.responses.create(
+        resp = client.chat.completions.create(
             model=OPENAI_TEXT_MODEL,
             messages=[
                 {"role":"system", "content": SYS},
@@ -28,11 +28,7 @@ def summarize_items(items: List[Dict]) -> List[Dict]:
             temperature=0.3,
             response_format={"type":"json_object"},
         )
-        try:
-            data = resp.output[0].content[0].text  # new Responses API structure
-        except Exception:
-            # fallback for older SDKs
-            data = resp.choices[0].message.content
+        data = resp.choices[0].message.content
         import json
         j = json.loads(data)
         it.update({
