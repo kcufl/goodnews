@@ -10,32 +10,32 @@ def parse_resolution(res: str) -> Tuple[int,int]:
     return int(w), int(h)
 
 def create_news_background(W: int, H: int, duration: float):
-    """뉴스 스타일의 동적 배경 생성"""
+    """일반적인 뉴스 스타일의 배경 생성"""
     # 그라데이션 배경 생성
     gradient = np.zeros((H, W, 3), dtype=np.uint8)
     
-    # 파란색에서 어두운 파란색으로 그라데이션
+    # 어두운 회색에서 검은색으로 그라데이션 (일반적인 뉴스 스타일)
     for y in range(H):
-        intensity = int(40 + (y / H) * 20)  # 40-60 범위
-        gradient[y, :] = [intensity//2, intensity//3, intensity]
+        intensity = int(20 + (y / H) * 15)  # 20-35 범위
+        gradient[y, :] = [intensity, intensity, intensity]
     
     # 뉴스 스타일 요소 추가 (오버레이)
     overlay = np.zeros((H, W, 3), dtype=np.uint8)
     
-    # 상단 바
-    bar_height = int(H * 0.08)
-    overlay[:bar_height, :] = [30, 50, 100]
+    # 상단 바 (뉴스 채널 스타일)
+    bar_height = int(H * 0.06)
+    overlay[:bar_height, :] = [40, 40, 40]
     
-    # 좌측 세로 바
-    bar_width = int(W * 0.02)
-    overlay[:, :bar_width] = [50, 80, 150]
+    # 좌측 세로 바 (더 얇게)
+    bar_width = int(W * 0.01)
+    overlay[:, :bar_width] = [60, 60, 60]
     
-    # 하단 바
-    bottom_bar_height = int(H * 0.12)
-    overlay[H-bottom_bar_height:, :] = [20, 30, 60]
+    # 하단 바 (자막 영역)
+    bottom_bar_height = int(H * 0.15)
+    overlay[H-bottom_bar_height:, :] = [15, 15, 15]
     
     # 배경 합성
-    background = np.clip(gradient + overlay * 0.3, 0, 255).astype(np.uint8)
+    background = np.clip(gradient + overlay * 0.4, 0, 255).astype(np.uint8)
     
     # ColorClip으로 변환
     return ColorClip(size=(W, H), color=background[0, 0].tolist()).set_duration(duration)
@@ -75,16 +75,25 @@ def make_video(audio_path: str, timeline: List[dict], background_image: str, res
 
     text_clips = [title_clip]
     for i, seg in enumerate(timeline):
-        dur = max(2.0, min(5.0, seg["end"]-seg["start"]))
-        fontsize = 58 if mode=="shorts" else 42
+        dur = max(2.0, min(8.0, seg["end"]-seg["start"]))
         width_margin = 80 if mode=="shorts" else 140
-        y_pos = int(H*0.70) if mode=="landscape" else int(H*0.80)
         
-        # 뉴스 번호와 함께 표시
-        news_text = f"{i+1}. {seg['headline']}"
-        txt = TextClip(txt=news_text, fontsize=fontsize, color="white", 
-                      method="caption", size=(W-width_margin, None), align="West")
-        text_clips.append(txt.set_position((40, y_pos)).set_start(seg["start"]).set_duration(dur))
+        # 헤드라인 (큰 글씨, 상단)
+        headline_fontsize = 48 if mode=="shorts" else 36
+        headline_y_pos = int(H*0.25) if mode=="landscape" else int(H*0.30)
+        headline_text = f"{i+1}. {seg['headline']}"
+        headline_clip = TextClip(txt=headline_text, fontsize=headline_fontsize, color="white", 
+                               method="caption", size=(W-width_margin, None), align="West")
+        text_clips.append(headline_clip.set_position((40, headline_y_pos)).set_start(seg["start"]).set_duration(dur))
+        
+        # 요약 내용 (작은 글씨, 하단)
+        if "summary" in seg and seg["summary"]:
+            summary_fontsize = 32 if mode=="shorts" else 24
+            summary_y_pos = int(H*0.45) if mode=="landscape" else int(H*0.50)
+            summary_text = seg["summary"]
+            summary_clip = TextClip(txt=summary_text, fontsize=summary_fontsize, color="lightblue", 
+                                  method="caption", size=(W-width_margin, None), align="West")
+            text_clips.append(summary_clip.set_position((40, summary_y_pos)).set_start(seg["start"]).set_duration(dur))
 
     audio = AudioFileClip(audio_path)
     comp = CompositeVideoClip([bg, *text_clips]).set_audio(audio)

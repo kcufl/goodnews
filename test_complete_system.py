@@ -93,16 +93,17 @@ def test_video_creation(audio_path, enriched):
         today = datetime.datetime.now().strftime("%Y-%m-%d")
         out_dir = Path(OUTPUT_DIR) / today
         
-        # 타임라인 생성
+        # 타임라인 생성 - 헤드라인과 요약 내용 포함
         timeline = []
         t = 0.0
-        for i, item in enumerate(enriched[:2], 1):
+        for i, item in enumerate(enriched[:3], 1):  # 3개 뉴스로 확장
             start = t
-            end = t + 5.0  # 각 뉴스 5초
+            end = t + 8.0  # 각 뉴스 8초로 확장 (요약 내용 표시를 위해)
             timeline.append({
                 "start": start, 
                 "end": end, 
-                "headline": f"{i}번 뉴스: {item['title'][:30]}..."
+                "headline": item['title'][:50] + "..." if len(item['title']) > 50 else item['title'],
+                "summary": item['summary'][:200] + "..." if len(item['summary']) > 200 else item['summary']
             })
             t = end
         
