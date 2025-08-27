@@ -14,6 +14,6 @@ CHANNEL_TITLE_PREFIX = os.getenv("CHANNEL_TITLE_PREFIX", "오늘의 뉴스 요�
 CHANNEL_LOCALE = os.getenv("CHANNEL_LOCALE", "KR:ko")
 NEWS_TOPICS = [s.strip() for s in os.getenv("NEWS_TOPICS", "경제,IT,국내").split(",")]
 VIDEO_RESOLUTION = os.getenv("VIDEO_RESOLUTION", "1920x1080")
-BACKGROUND_IMAGE = os.getenv("BACKGROUND_IMAGE", "./assets/background.jpg")
+BACKGROUND_IMAGE = os.getenv("BACKGROUND_IMAGE", "./background.jpg")
 
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./data")

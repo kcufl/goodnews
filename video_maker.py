@@ -2,6 +2,7 @@ from moviepy.editor import (AudioFileClip, ImageClip, TextClip, CompositeVideoCl
 from typing import List, Dict, Tuple
 from pathlib import Path
 import srt, datetime
+import PIL
 
 def parse_resolution(res: str) -> Tuple[int,int]:
     w,h = res.split("x")
@@ -18,10 +19,8 @@ def build_srt(segments: List[dict], srt_path: str):
 
 def make_video(audio_path: str, timeline: List[dict], background_image: str, resolution: str, title: str, out_path: str, mode: str="landscape"):
     W,H = parse_resolution(resolution)
-    if background_image and Path(background_image).exists():
-        bg = ImageClip(background_image).resize(newsize=(W,H)).set_duration(timeline[-1]["end"] + 1.0)
-    else:
-        bg = ColorClip(size=(W,H), color=(10,10,20)).set_duration(timeline[-1]["end"] + 1.0)
+    # 배경 이미지 대신 색상 배경 사용 (PIL 호환성 문제 해결)
+    bg = ColorClip(size=(W,H), color=(20,40,80)).set_duration(timeline[-1]["end"] + 1.0)
 
     # Title
     title_clip = TextClip(txt=title, fontsize=64 if mode=="shorts" else 54, color="white", method="caption", size=(W-120, None), align="West")
